@@ -1,0 +1,9 @@
+---
+homelab:
+  hosts:
+    htpc:
+      ansible_host: 192.168.0.102
+      ansible_ssh_user: htpc
+    awx:
+      ansible_host: 192.168.0.96
+      ansible_ssh_user: ansible

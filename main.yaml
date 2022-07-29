@@ -1,0 +1,13 @@
+---
+- hosts: all
+  gather_facts: true
+  vars_files:
+    - vault.yaml
+  roles:
+    - name: maintenance
+      tags:
+        - maintenance
+
+    - name: backup
+      tags:
+        - backup

@@ -1,0 +1,5 @@
+---
+
+- name: Include patching tasks
+  ansible.builtin.include_tasks:
+    file: install_packages.yaml

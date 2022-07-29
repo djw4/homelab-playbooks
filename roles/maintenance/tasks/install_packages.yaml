@@ -1,0 +1,9 @@
+---
+
+- name: Update all packages using apt
+  ansible.builtin.apt:
+    name: "*"
+    state: latest
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+  become: yes

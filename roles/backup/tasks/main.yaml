@@ -1,0 +1,47 @@
+---
+
+- name: Set variables for tasks
+  set_fact:
+    output_file: awx-config.yaml
+
+- name: Write the bash export script
+  ansible.builtin.copy:
+    dest: export.sh
+    mode: "0700"
+    content: |
+      #!/usr/bin/env bash
+
+      set -eu
+      SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+      
+      source ${SCRIPT_DIR}/.awx_config
+      awx \
+        --conf.host http://awx.local \
+        --conf.username $AWX_USERNAME \
+        --conf.password $AWX_PASSWORD \
+        export -f yaml > ${SCRIPT_DIR}/{{ output_file }}
+
+- name: Export the AWX configuration to disk
+  ansible.builtin.shell:
+    cmd: /bin/bash export.sh
+  args:
+    creates: "{{ output_file }}"
+
+- block:
+    - name: Upload the backup file
+      amazon.aws.aws_s3:
+        aws_access_key: "{{ aws.aws_access_key }}"
+        aws_secret_key: "{{ aws.aws_secret_key }}"
+        aws_region: "{{ aws.region }}"
+        bucket: "{{ aws.s3.bucket_name }}"
+        src: "{{ output_file }}"
+        object: "{{ ansible_date_time.iso8601 }}{{ output_file }}"
+        mode: put
+        encrypt: yes
+        encryption_mode: AES256
+
+  always:
+    - name: Remove exported backup from disk
+      ansible.builtin.file:
+        path: "{{ output_file }}"
+        state: absent
